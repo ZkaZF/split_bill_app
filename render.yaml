@@ -1,0 +1,26 @@
+databases:
+  - name: splitbill-db
+    plan: free
+    databaseName: splitbill
+    user: splitbill
+
+services:
+  - type: web
+    name: splitbill
+    plan: free
+    runtime: go
+    buildCommand: |
+      cd frontend && npm install && npm run build && 
+      mkdir -p ../backend/static && 
+      cp -r dist/* ../backend/static/ &&
+      cd ../backend && go build -o app .
+    startCommand: cd backend && ./app
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: splitbill-db
+          property: connectionString
+      - key: GIN_MODE
+        value: release
+      - key: PORT
+        value: 10000
