@@ -2,11 +2,194 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import QRCode from "react-qr-code";
 import { getGroup, addMember, updateMember, deleteMember, addExpense, updateExpense, deleteExpense, getSummary, getCategories, markSettlementPaid, unmarkSettlementPaid, exportWhatsApp, verifyGroupPassword } from "../api";
+import Statistics from "../components/Statistics";
+import Antigravity from "../components/Antigravity";
+
+// SVG Icons as components
+const WalletIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+    <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+  </svg>
+);
+
+const LockIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+);
+
+const UnlockIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+  </svg>
+);
+
+const UsersIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
+
+const ReceiptIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" />
+    <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
+    <path d="M12 17.5v-11" />
+  </svg>
+);
+
+const ArrowRightIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 12h14" />
+    <path d="m12 5 7 7-7 7" />
+  </svg>
+);
+
+const ArrowLeftIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m12 19-7-7 7-7" />
+    <path d="M19 12H5" />
+  </svg>
+);
+
+const CopyIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+  </svg>
+);
+
+const QrCodeIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="5" height="5" x="3" y="3" rx="1" />
+    <rect width="5" height="5" x="16" y="3" rx="1" />
+    <rect width="5" height="5" x="3" y="16" rx="1" />
+    <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+    <path d="M21 21v.01" />
+    <path d="M12 7v3a2 2 0 0 1-2 2H7" />
+    <path d="M3 12h.01" />
+    <path d="M12 3h.01" />
+    <path d="M12 16v.01" />
+    <path d="M16 12h1" />
+    <path d="M21 12v.01" />
+    <path d="M12 21v-1" />
+  </svg>
+);
+
+const MessageCircleIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+  </svg>
+);
+
+const SendIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m22 2-7 20-4-9-9-4Z" />
+    <path d="M22 2 11 13" />
+  </svg>
+);
+
+const PencilIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+    <path d="m15 5 4 4" />
+  </svg>
+);
+
+const TrashIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 6h18" />
+    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+    <line x1="10" y1="11" x2="10" y2="17" />
+    <line x1="14" y1="11" x2="14" y2="17" />
+  </svg>
+);
+
+const CheckIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 6 9 17l-5-5" />
+  </svg>
+);
+
+const SquareIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="18" height="18" x="3" y="3" rx="2" />
+  </svg>
+);
+
+const CheckCircleIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+    <path d="m9 11 3 3L22 4" />
+  </svg>
+);
+
+const PlusIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 12h14" />
+    <path d="M12 5v14" />
+  </svg>
+);
+
+const SaveIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+    <polyline points="17 21 17 13 7 13 7 21" />
+    <polyline points="7 3 7 8 15 8" />
+  </svg>
+);
+
+const XIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 6 6 18" />
+    <path d="m6 6 12 12" />
+  </svg>
+);
+
+const AlertCircleIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="8" x2="12" y2="12" />
+    <line x1="12" y1="16" x2="12.01" y2="16" />
+  </svg>
+);
+
+const LoaderIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+  </svg>
+);
+
+const FrownIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <path d="M16 16s-1.5-2-4-2-4 2-4 2" />
+    <line x1="9" y1="9" x2="9.01" y2="9" />
+    <line x1="15" y1="9" x2="15.01" y2="9" />
+  </svg>
+);
+
+const UserPlusIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <line x1="19" y1="8" x2="19" y2="14" />
+    <line x1="22" y1="11" x2="16" y2="11" />
+  </svg>
+);
 
 // Kategori default jika API belum ready
-const DEFAULT_CATEGORIES = ["🍔 Makanan", "🚗 Transport", "🎬 Hiburan", "🛒 Belanja", "🏠 Akomodasi", "💊 Kesehatan", "📱 Lainnya"];
+const DEFAULT_CATEGORIES = ["Makanan", "Transport", "Hiburan", "Belanja", "Akomodasi", "Kesehatan", "Lainnya"];
 
-function GroupPage() {
+function GroupPage({ isDarkMode = true }) {
   const { code } = useParams();
   const navigate = useNavigate();
 
@@ -332,22 +515,32 @@ function GroupPage() {
 
   if (loading) {
     return (
-      <div className="container">
-        <div className="loading">⏳ Memuat...</div>
+      <div className="group-page-wrapper">
+        <div className="page-canvas"><Antigravity count={700} magnetRadius={14} ringRadius={9} waveSpeed={0.35} waveAmplitude={1.0} particleSize={1.5} lerpSpeed={0.055} color={"#19d0e8"} autoAnimate={true} particleVariance={1.0} rotationSpeed={0.08} depthFactor={0.6} pulseSpeed={2.5} particleShape={"capsule"} fieldStrength={10} /></div>
+        <div className="container">
+          <div className="loading">
+            <LoaderIcon className="loading-icon" style={{ width: 32, height: 32, animation: 'spin 1s linear infinite' }} />
+            <span style={{ marginTop: 12 }}>Memuat...</span>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container">
-        <div className="header">
-          <h1>😢 Oops!</h1>
-          <p>{error}</p>
+      <div className="group-page-wrapper">
+        <div className="page-canvas"><Antigravity count={700} magnetRadius={14} ringRadius={9} waveSpeed={0.35} waveAmplitude={1.0} particleSize={1.5} lerpSpeed={0.055} color={"#19d0e8"} autoAnimate={true} particleVariance={1.0} rotationSpeed={0.08} depthFactor={0.6} pulseSpeed={2.5} particleShape={"capsule"} fieldStrength={10} /></div>
+        <div className="container">
+          <div className="header">
+            <h1><FrownIcon className="logo-icon" /><span>Oops!</span></h1>
+            <p>{error}</p>
+          </div>
+          <button className="btn btn-primary" onClick={() => navigate("/")}>
+            <ArrowLeftIcon className="btn-icon" />
+            Kembali ke Home
+          </button>
         </div>
-        <button className="btn btn-primary" onClick={() => navigate("/")}>
-          ← Kembali ke Home
-        </button>
       </div>
     );
   }
@@ -355,71 +548,83 @@ function GroupPage() {
   // Password required screen
   if (requiresPassword) {
     return (
-      <div className="container">
-        <div className="header">
-          <h1>🔒 {group?.name || "Grup Terkunci"}</h1>
-          <p>Grup ini dilindungi password</p>
-        </div>
-
-        <form onSubmit={handleVerifyPassword}>
-          {passwordError && (
-            <div
-              style={{
-                background: "#ffebee",
-                color: "#c62828",
-                padding: "10px",
-                borderRadius: "10px",
-                marginBottom: "15px",
-              }}
-            >
-              {passwordError}
-            </div>
-          )}
-
-          <div className="form-group">
-            <label>Masukkan Password</label>
-            <input type="password" placeholder="Password grup" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} autoFocus />
+      <div className="group-page-wrapper">
+        <div className="page-canvas"><Antigravity count={700} magnetRadius={14} ringRadius={9} waveSpeed={0.35} waveAmplitude={1.0} particleSize={1.5} lerpSpeed={0.055} color={"#19d0e8"} autoAnimate={true} particleVariance={1.0} rotationSpeed={0.08} depthFactor={0.6} pulseSpeed={2.5} particleShape={"capsule"} fieldStrength={10} /></div>
+        <div className="container">
+          <div className="header">
+            <h1>
+              <LockIcon className="logo-icon" />
+              <span>{group?.name || "Grup Terkunci"}</span>
+            </h1>
+            <p>Grup ini dilindungi password</p>
           </div>
 
-          <button type="submit" className="btn btn-primary">
-            🔓 Buka Grup
-          </button>
-        </form>
+          <form onSubmit={handleVerifyPassword}>
+            {passwordError && (
+              <div className="error-message">
+                <AlertCircleIcon className="error-icon" />
+                {passwordError}
+              </div>
+            )}
 
-        <button className="btn btn-secondary" onClick={() => navigate("/")}>
-          ← Kembali ke Home
-        </button>
+            <div className="form-group">
+              <label>
+                <LockIcon className="label-icon" />
+                Masukkan Password
+              </label>
+              <input type="password" placeholder="Password grup" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} autoFocus />
+            </div>
+
+            <button type="submit" className="btn btn-primary">
+              <UnlockIcon className="btn-icon" />
+              Buka Grup
+            </button>
+          </form>
+
+          <button className="btn btn-secondary" onClick={() => navigate("/")} style={{ marginTop: 12 }}>
+            <ArrowLeftIcon className="btn-icon" />
+            Kembali ke Home
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container">
+    <div className="group-page-wrapper">
+      <div className="page-canvas"><Antigravity count={700} magnetRadius={14} ringRadius={9} waveSpeed={0.35} waveAmplitude={1.0} particleSize={1.5} lerpSpeed={0.055} color={"#19d0e8"} autoAnimate={true} particleVariance={1.0} rotationSpeed={0.08} depthFactor={0.6} pulseSpeed={2.5} particleShape={"capsule"} fieldStrength={10} /></div>
+      <div className="container">
       {/* Header */}
       <div className="header">
-        <h1>💰 {group.name}</h1>
+        <h1>
+          <WalletIcon className="logo-icon" />
+          <span className="logo-text">{group.name}</span>
+        </h1>
         <p>{group.description || "Split Bill"}</p>
       </div>
 
       {/* Share Box */}
       <div className="share-box">
-        <p style={{ marginBottom: "5px", fontSize: "0.9rem" }}>Kode Grup:</p>
+        <p style={{ marginBottom: "8px", fontSize: "0.9rem", opacity: 0.8 }}>Kode Grup:</p>
         <div className="share-code">{code}</div>
-        <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginTop: "10px", flexWrap: "wrap" }}>
-          <button className="btn btn-secondary" style={{ width: "auto", padding: "8px 15px" }} onClick={copyLink}>
-            📋 Copy Link
+        <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginTop: "16px", flexWrap: "wrap" }}>
+          <button className="btn btn-secondary" style={{ width: "auto", padding: "10px 16px" }} onClick={copyLink}>
+            <CopyIcon className="btn-icon" />
+            Copy Link
           </button>
-          <button className="btn btn-secondary" style={{ width: "auto", padding: "8px 15px" }} onClick={() => setShowQR(!showQR)}>
-            📱 {showQR ? "Tutup" : "QR Code"}
+          <button className="btn btn-secondary" style={{ width: "auto", padding: "10px 16px" }} onClick={() => setShowQR(!showQR)}>
+            <QrCodeIcon className="btn-icon" />
+            {showQR ? "Tutup" : "QR Code"}
           </button>
-          <button className="btn btn-success" style={{ width: "auto", padding: "8px 15px" }} onClick={handleExportWhatsApp}>
-            💬 WhatsApp
+          <button className="btn btn-success" style={{ width: "auto", padding: "10px 16px" }} onClick={handleExportWhatsApp}>
+            <MessageCircleIcon className="btn-icon" />
+            WhatsApp
           </button>
         </div>
 
         {/* QR Code */}
         {showQR && (
-          <div style={{ marginTop: "15px", background: "white", padding: "15px", borderRadius: "10px", display: "inline-block" }}>
+          <div style={{ marginTop: "20px", background: "white", padding: "16px", borderRadius: "var(--radius-md)", display: "inline-block" }}>
             <QRCode value={window.location.href} size={150} />
           </div>
         )}
@@ -443,25 +648,36 @@ function GroupPage() {
         </div>
       )}
 
+      {/* Statistics */}
+      {group.expenses && group.expenses.length > 0 && (
+        <>
+          <Statistics expenses={group.expenses} members={group.members} isDarkMode={isDarkMode} />
+          <div className="divider"></div>
+        </>
+      )}
+
       {/* Settlements */}
       {summary && summary.settlements && summary.settlements.length > 0 && (
         <>
-          <div className="section-title">💸 Yang Harus Transfer</div>
+          <div className="section-title">
+            <SendIcon className="section-icon" />
+            Yang Harus Transfer
+          </div>
           {summary.settlements.map((s, index) => {
             const paid = isSettlementPaid(s.from.id, s.to.id);
             return (
               <div key={index} className={`settlement-item ${paid ? "settlement-paid" : ""}`}>
-                <span>{s.from.name}</span>
-                <span className="settlement-arrow">→</span>
-                <span>{s.to.name}</span>
+                <span className="settlement-name">{s.from.name}</span>
+                <ArrowRightIcon className="settlement-arrow" />
+                <span className="settlement-name">{s.to.name}</span>
                 <span className="settlement-amount">{formatRupiah(s.amount)}</span>
                 {paid ? (
-                  <button className="btn-icon btn-paid" onClick={() => handleUnmarkPaid(s)} title="Batalkan konfirmasi">
-                    ✅
+                  <button className="btn-tiny btn-check-paid" onClick={() => handleUnmarkPaid(s)} title="Batalkan konfirmasi">
+                    <CheckCircleIcon className="tiny-icon" />
                   </button>
                 ) : (
-                  <button className="btn-icon" onClick={() => handleMarkPaid(s)} title="Konfirmasi sudah transfer">
-                    ⬜
+                  <button className="btn-tiny btn-check-unpaid" onClick={() => handleMarkPaid(s)} title="Konfirmasi sudah transfer">
+                    <SquareIcon className="tiny-icon" />
                   </button>
                 )}
               </div>
@@ -472,7 +688,10 @@ function GroupPage() {
       )}
 
       {/* Members */}
-      <div className="section-title">👥 Anggota ({group.members?.length || 0})</div>
+      <div className="section-title">
+        <UsersIcon className="section-icon" />
+        Anggota ({group.members?.length || 0})
+      </div>
 
       {group.members && group.members.length > 0 ? (
         <div className="members-list">
@@ -480,10 +699,10 @@ function GroupPage() {
             <div key={member.id} className="member-tag-container">
               <span className="member-tag">{member.name}</span>
               <button className="btn-tiny" onClick={() => handleEditMember(member)} title="Edit">
-                ✏️
+                <PencilIcon className="tiny-icon" style={{ width: 16, height: 16, color: 'var(--color-primary)' }} />
               </button>
               <button className="btn-tiny" onClick={() => handleDeleteMember(member.id)} title="Hapus">
-                🗑️
+                <TrashIcon className="tiny-icon" style={{ width: 16, height: 16 }} />
               </button>
             </div>
           ))}
@@ -492,59 +711,62 @@ function GroupPage() {
         <div className="empty-state">Belum ada anggota</div>
       )}
 
-      {/* Form Tambah Member */}
-      <form onSubmit={handleAddMember} style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+      {/* Form Tambah/Edit Member */}
+      <form onSubmit={handleAddMember} className="member-form">
         <input
+          className="form-input"
           type="text"
-          placeholder={editingMember ? "Edit nama..." : "Nama anggota baru"}
+          placeholder={editingMember ? "Edit nama anggota..." : "Nama anggota baru"}
           value={memberName}
           onChange={(e) => setMemberName(e.target.value)}
-          style={{ flex: 1, padding: "10px", borderRadius: "10px", border: "2px solid #e0e0e0" }}
         />
-        <button type="submit" className="btn btn-success" style={{ width: "auto", padding: "10px 20px" }}>
-          {editingMember ? "💾 Simpan" : "+ Tambah"}
-        </button>
-        {editingMember && (
-          <button
-            type="button"
-            className="btn btn-secondary"
-            style={{ width: "auto", padding: "10px 15px" }}
-            onClick={() => {
-              setEditingMember(null);
-              setMemberName("");
-            }}
-          >
-            ✕
+        <div className="member-form-actions">
+          <button type="submit" className="btn btn-primary" style={{ width: "auto", padding: "12px 20px" }}>
+            {editingMember ? <SaveIcon className="btn-icon" /> : <UserPlusIcon className="btn-icon" />}
+            {editingMember ? "Simpan" : "Tambah"}
           </button>
-        )}
+          {editingMember && (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{ width: "auto", padding: "12px 16px" }}
+              onClick={() => { setEditingMember(null); setMemberName(""); }}
+            >
+              <XIcon className="btn-icon" />
+            </button>
+          )}
+        </div>
       </form>
 
       <div className="divider"></div>
 
       {/* Expenses */}
-      <div className="section-title">📝 Pengeluaran ({group.expenses?.length || 0})</div>
+      <div className="section-title">
+        <ReceiptIcon className="section-icon" />
+        Pengeluaran ({group.expenses?.length || 0})
+      </div>
 
       {group.expenses && group.expenses.length > 0 ? (
         group.expenses.map((expense) => (
           <div key={expense.id} className="card">
             <div className="card-header">
-              <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <span className="card-title">{expense.description}</span>
                 {expense.category && <span className="category-badge">{expense.category}</span>}
               </div>
               <span className="card-amount">{formatRupiah(expense.amount)}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <small style={{ color: "#888" }}>
+              <small style={{ color: "var(--color-text-muted)" }}>
                 Dibayar oleh: {expense.paid_by?.name || "Unknown"}
                 {expense.split_type === "custom" && " (split tidak rata)"}
               </small>
-              <div>
+              <div style={{ display: 'flex', gap: '4px' }}>
                 <button className="btn-tiny" onClick={() => handleEditExpense(expense)} title="Edit">
-                  ✏️
+                  <PencilIcon className="tiny-icon" style={{ width: 16, height: 16, color: 'var(--color-primary)' }} />
                 </button>
                 <button className="btn-tiny" onClick={() => handleDeleteExpense(expense.id)} title="Hapus">
-                  🗑️
+                  <TrashIcon className="tiny-icon" style={{ width: 16, height: 16 }} />
                 </button>
               </div>
             </div>
@@ -557,8 +779,11 @@ function GroupPage() {
       {/* Form Tambah Expense */}
       {group.members && group.members.length > 0 && (
         <form onSubmit={handleAddExpense}>
-          <div className="card" style={{ marginTop: "15px" }}>
-            <h4 style={{ marginBottom: "15px" }}>{editingExpense ? "✏️ Edit Pengeluaran" : "➕ Tambah Pengeluaran"}</h4>
+          <div className="card" style={{ marginTop: "16px" }}>
+            <h4 className="expense-form-title">
+              {editingExpense ? <PencilIcon className="expense-form-icon" /> : <PlusIcon className="expense-form-icon" />}
+              {editingExpense ? "Edit Pengeluaran" : "Tambah Pengeluaran"}
+            </h4>
 
             <div className="form-group">
               <label>Deskripsi</label>
@@ -617,15 +842,16 @@ function GroupPage() {
               </div>
             )}
 
-            <button type="submit" className="btn btn-success">
-              💾 {editingExpense ? "Update" : "Simpan"} Pengeluaran
+            <button type="submit" className="btn btn-primary">
+              <SaveIcon className="btn-icon" />
+              {editingExpense ? "Update" : "Simpan"} Pengeluaran
             </button>
 
             {editingExpense && (
               <button
                 type="button"
                 className="btn btn-secondary"
-                style={{ marginTop: "10px" }}
+                style={{ marginTop: "12px" }}
                 onClick={() => {
                   setEditingExpense(null);
                   setExpenseDesc("");
@@ -636,7 +862,8 @@ function GroupPage() {
                   setSplitAmong([]);
                 }}
               >
-                ✕ Batal Edit
+                <XIcon className="btn-icon" />
+                Batal Edit
               </button>
             )}
           </div>
@@ -647,8 +874,10 @@ function GroupPage() {
 
       {/* Back Button */}
       <button className="btn btn-secondary" onClick={() => navigate("/")}>
-        ← Buat Grup Baru
+        <ArrowLeftIcon className="btn-icon" />
+        Buat Grup Baru
       </button>
+    </div>
     </div>
   );
 }

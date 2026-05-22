@@ -34,3 +34,9 @@ npm-debug.log*
 
 # Test
 coverage/
+
+# Documentation files
+planning.md
+DOCUMENTATION.md
+documentation.md
+deployment.md

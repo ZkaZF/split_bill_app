@@ -1,38 +1,40 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import GroupPage from "./pages/GroupPage";
+import AnimatedThemeToggler from "./components/AnimatedThemeToggler";
 
 function App() {
-  // Dark mode state
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem("darkMode");
-    return saved ? JSON.parse(saved) : false;
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem("theme");
+    return saved ? saved === "dark" : true; // default dark
   });
 
-  // Apply dark mode class to body
   useEffect(() => {
-    if (darkMode) {
-      document.body.classList.add("dark-mode");
+    if (isDark) {
+      document.body.classList.remove("light");
     } else {
-      document.body.classList.remove("dark-mode");
+      document.body.classList.add("light");
     }
-    localStorage.setItem("darkMode", JSON.stringify(darkMode));
-  }, [darkMode]);
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+  }, [isDark]);
+
+  const handleToggle = useCallback(() => {
+    setIsDark((prev) => !prev);
+  }, []);
 
   return (
     <div className="app">
-      {/* Dark Mode Toggle */}
-      <button className="theme-toggle" onClick={() => setDarkMode(!darkMode)} title={darkMode ? "Light Mode" : "Dark Mode"}>
-        {darkMode ? "☀️" : "🌙"}
-      </button>
+      <AnimatedThemeToggler
+        isDark={isDark}
+        onToggle={handleToggle}
+        variant="circle"
+        duration={500}
+      />
 
       <Routes>
-        {/* Halaman utama - buat grup baru */}
         <Route path="/" element={<HomePage />} />
-
-        {/* Halaman grup - lihat detail & tambah expense */}
-        <Route path="/group/:code" element={<GroupPage />} />
+        <Route path="/group/:code" element={<GroupPage isDarkMode={isDark} />} />
       </Routes>
     </div>
   );
